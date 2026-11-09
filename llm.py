@@ -29,12 +29,39 @@ Curriculo: {curriculo[:6000]}
 Retorne JSON com as chaves: resumo, habilidades, anos_experiencia, nota_aderencia (0-100),
 pontos_fortes, lacunas, justificativa, perguntas_entrevista."""
     r = _client().chat.completions.create(
-        model=os.getenv("LLM_MODEL"), temperature=0.2,
-        messages=[{"role": "system", "content": SYSTEM}, {"role": "user", "content": prompt}])
-    try:
-        return json.loads(txt[txt.find("{"): txt.rfind("}") + 1])
-    except (ValueError, json.JSONDecodeError):
+        model=os.getenv("LLM_MODEL"),
+        temperature=0.2,
+        messages=[
+            {"role": "system", "content": SYSTEM},
+            {"role": "user", "content": prompt},
+        ],
+    )
+
+    # Extrai o texto retornado pelo LLM.
+    txt = (r.choices[0].message.content or "").strip()
+
+    if not txt:
         raise ValueError(
-            "O modelo de linguagem retornou uma resposta fora do formato esperado. "
-            "Tente novamente ou utilize outro modelo."
+            "O modelo de linguagem retornou uma resposta vazia. "
+            "Tente novamente."
         )
+
+    # Localiza o objeto JSON, mesmo se vier dentro de um bloco Markdown.
+    inicio = txt.find("{")
+    fim = txt.rfind("}")
+
+    if inicio == -1 or fim <= inicio:
+        raise ValueError(
+            "O modelo de linguagem não retornou um objeto JSON válido. "
+            "Tente novamente."
+        )
+
+    try:
+        resultado = json.loads(txt[inicio:fim + 1])
+    except json.JSONDecodeError as erro:
+        raise ValueError(
+            "O modelo de linguagem retornou uma resposta fora do formato "
+            "esperado. Tente novamente."
+        ) from erro
+
+    return resultado
