@@ -1,0 +1,4 @@
+modelo,acuracia,f1_macro
+LogisticRegression,0.6861,0.6393
+RandomForest,0.7505,0.6896
+MLP (Perceptron multicamada),0.6157,0.561
