@@ -31,6 +31,10 @@ pontos_fortes, lacunas, justificativa, perguntas_entrevista."""
     r = _client().chat.completions.create(
         model=os.getenv("LLM_MODEL"), temperature=0.2,
         messages=[{"role": "system", "content": SYSTEM}, {"role": "user", "content": prompt}])
-    txt = r.choices[0].message.content.strip().strip("`")
-    if txt.lower().startswith("json"): txt = txt[4:]
-    return json.loads(txt[txt.find("{"): txt.rfind("}") + 1])
+    try:
+        return json.loads(txt[txt.find("{"): txt.rfind("}") + 1])
+    except (ValueError, json.JSONDecodeError):
+        raise ValueError(
+            "O modelo de linguagem retornou uma resposta fora do formato esperado. "
+            "Tente novamente ou utilize outro modelo."
+        )

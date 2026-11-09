@@ -32,7 +32,9 @@ if st.button("Analisar", type="primary"):
         try: r = analisar(texto, vaga, top.index[0], float(top.iloc[0]))
         except Exception as e: st.error(f"Falha no LLM: {e}"); st.stop()
     st.subheader("2) Analise (LLM)")
-    st.metric("Aderencia a vaga", f"{r['nota_aderencia']}/100"); st.progress(int(r["nota_aderencia"]) / 100)
+    nota = max(0, min(100, int(float(r["nota_aderencia"]))))
+    st.metric("Aderencia a vaga", f"{nota}/100")
+    st.progress(nota / 100)
     st.write(r["resumo"]); st.write("**Habilidades:**", ", ".join(r["habilidades"]))
     a, b = st.columns(2)
     a.success("Pontos fortes\n\n" + "\n".join(f"- {x}" for x in r["pontos_fortes"]))
@@ -41,6 +43,6 @@ if st.button("Analisar", type="primary"):
     st.write("**Perguntas para entrevista:**")
     for p in r["perguntas_entrevista"]:
         st.write("-", p)
-    rel = f"RELATORIO\nArea: {top.index[0]}\nAderencia: {r['nota_aderencia']}\n{r['justificativa']}"
+    rel = f"RELATORIO\nArea: {top.index[0]}\nAderencia: {nota}\n{r['justificativa']}"
     st.download_button("Baixar relatorio", rel, "relatorio.txt")
     st.caption("Aviso: resultado automatico, sujeito a erros e vieses. Revisao humana obrigatoria.")
